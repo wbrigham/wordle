@@ -10,10 +10,59 @@
 </head>
 <body>
 
-<canvas id="myCanvas" width="480" height="320"></canvas>
+<canvas id="myCanvas" width="480" height="720"></canvas>
 
 <script>
-    // Will Brigham Editor
+    // Cut and paste your jsfiddle javascript code here.
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+
+
+    const lightGray = "#eeeeee";
+    const tileSize = 50;
+
+    class Tile {
+        constructor(value, row, col){
+            this.value = value;
+            this.row = col;
+            this.col = col;
+            this.color = lightGray;
+            this.userInput = " ";
+        }
+
+        drawTile(){
+            ctx.beginPath();
+            ctx.rect(this.row, this.col, tileSize, tileSize);
+            ctx.fillStyle = this.userInput;
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.font = "24px Arial";
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(this.userInput, this.row, this.col);
+            ctx.fill();
+            ctx.closePath();
+
+        }
+
+    }
+
+    function draw(){
+        ctx.beginPath();
+        ctx.rect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#000000";
+        ctx.fill();
+        ctx.closePath();
+
+
+        let exampleTile = new Tile("A", 1, 1);
+        exampleTile.drawTile();
+    }
+
+    setInterval(draw, 10);
+
 </script>
 
 </body>
