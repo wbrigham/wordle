@@ -20,33 +20,117 @@
 
 
     const lightGray = "#eeeeee";
-    const tileSize = 50;
+    const green = "#19d70f";
+    const yellow = "#d3d70f";
+    const darkGray = "#cccccc";
+
+    const tileSize = canvas.width/7;
+    const textSize = tileSize*2/3;
+    const keyboardSize = canvas.width/10;
+    const keyboardTextSize = keyboardSize*2/3;
 
     class Tile {
         constructor(value, row, col){
             this.value = value;
-            this.row = col;
+            this.row = row;
             this.col = col;
             this.color = lightGray;
             this.userInput = " ";
+            this.size = tileSize;
         }
 
-        drawTile(){
+        
+
+    }
+
+    Tile.prototype.drawTile = function(){
             ctx.beginPath();
-            ctx.rect(this.row, this.col, tileSize, tileSize);
-            ctx.fillStyle = this.userInput;
+            ctx.rect(this.size*(this.row+1), this.size*(this.col+1.5), this.size, this.size);
+            ctx.fillStyle = this.color;
             ctx.fill();
             ctx.closePath();
 
             ctx.beginPath();
-            ctx.font = "24px Arial";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(this.userInput, this.row, this.col);
+            ctx.font = textSize + "px Arial";
+            ctx.fillStyle = "#000000";
+            ctx.fillText(this.userInput, this.size*(this.row+1)+this.size/4, this.size*(this.col+1.5)+this.size/1.5);
+            ctx.closePath();
+
+    }
+
+    class KeyBoardLetter {
+        constructor(value, row, col){
+            this.value = value;
+            this.row = row;
+            this.col = col;
+            this.x = col*keyboardSize+keyboardSize/2;
+            this.y = canvas.height - 3*keyboardSize + row*keyboardSize;
+            if(row == 0){
+                this.x = col*keyboardSize;
+            }
+            this.color = lightGray;
+            this.size = keyboardSize;
+        }
+    }
+
+    KeyBoardLetter.prototype.drawLetter = function(){
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = this.color;
             ctx.fill();
             ctx.closePath();
 
-        }
+            ctx.beginPath();
+            ctx.font = textSize + "px Arial";
+            ctx.fillStyle = "#000000";
+            ctx.fillText(this.value, this.x+this.size/4, this.y+this.size/1.5);
+            ctx.closePath();
 
+    }
+    const firstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+    const secondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+    const thirdRow = ["Z", "X", "C", "V", "B", "N", "M"];
+
+    let keys = new Array(3);
+
+    keys[0] = new Array(firstRow.length);
+    for(let i = 0; i < firstRow.length; i++){
+        keys[0][i] = new KeyBoardLetter(firstRow[i], 0, i);
+    }
+
+    keys[1] = new Array(secondRow.length);
+    for(let i = 0; i < secondRow.length; i++){
+        keys[1][i] = new KeyBoardLetter(secondRow[i], 1, i);
+    }
+
+    keys[2] = new Array(thirdRow.length+2);
+    keys[2][0] = new KeyBoardLetter(">", 2, 0);
+    keys[2][thirdRow.length+1] = new KeyBoardLetter("<", 2, thirdRow.length+1);
+    for(let i = 0; i < thirdRow.length; i++){
+        keys[2][i+1] = new KeyBoardLetter(thirdRow[i], 2, i+1);
+    }
+
+    //let exampleTile = new Tile("A", 1, 1);
+    let tiles = new Array(6);
+    let solution = "APPLE";
+    for(let i = 0; i < 6; i++){
+        tiles[i] = new Array(solution.length);
+        for(let j = 0; j < solution.length; j++){
+            tiles[i][j] = new Tile(solution[j], j, i);
+        }
+    }
+
+    window.addEventListener('click', (event) => {
+    if (event.button == 0) {
+        console.log('Cursor at: ' + pointerX + ', ' + pointerY);
+        }
+    })
+    // this tracks the value of the x and y coordinates of the mouse
+    var pointerX = -1;
+    var pointerY = -1;
+    document.onmousemove = function(event) {
+        pointerX = event.pageX;
+        pointerY = event.pageY;
     }
 
     function draw(){
@@ -56,9 +140,23 @@
         ctx.fill();
         ctx.closePath();
 
+        ctx.beginPath();
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText("WORDLE", 175, 60);
+        ctx.closePath();
 
-        let exampleTile = new Tile("A", 1, 1);
-        exampleTile.drawTile();
+        for(let i = 0; i < tiles.length; i++){
+            for(let j = 0; j < tiles[i].length; j++){
+                tiles[i][j].drawTile();
+            }
+        }
+
+        for(let i = 0; i < keys.length; i++){
+            for(let j = 0; j < keys[i].length; j++){
+                keys[i][j].drawLetter();
+            }
+        }
     }
 
     setInterval(draw, 10);
