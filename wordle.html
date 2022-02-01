@@ -14,29 +14,51 @@
 
 <script>
     // Cut and paste your jsfiddle javascript code here.
+    let textByLine = ["aback", "abase", "abate", "abaya", "abbey", "abbot", "abets", "abhor", "abide", "abode", "abort", "about", "above", "abuse", "abuts", "abyss", "ached", "aches", "acids", "acing", "ackee", "acorn", "acres", "acrid", "acted", "actin", "actor", "acute", "adage", "adapt", "added", "adder", "addle", "adept", "adieu", "adios", "adits", "adman", "admin", "admit", "adobe", "adobo", "adopt", "adore", "adorn", "adult", "adzes", "aegis", "aeons", "aerie", "affix", "afire", "afoot", "afore", "after", "again", "agape", "agate", "agave", "agent", "aggro", "agile", "aging", "aglow", "agony", "agora", "agree", "ahead", "ahold", "aided", "aider", "aides", "ailed", "aimed", "aimer", "aioli", "aired", "aisle", "alarm", "album", "alder", "aleph", "alert", "algae", "algal", "alias", "alibi", "alien", "align", "alike", "alive", "alkyd", "alkyl", "allay", "alley", "allot", "allow", "alloy", "allyl", "aloes", "aloft", "aloha", "alone", "along", "aloof", "aloud", "alpha", "altar", "alter", "altos", "alums", "amass", "amaze", "amber", "ambit", "amble", "ambos", "amend", "amide", "amine", "amino", "amiss", "amity", "amnio", "among", "amour", "amped", "ample", "amply", "amuse", "ancho", "angel", "anger", "angle", "angry", "angst", "anima", "anime", "anion", "anise", "ankle", "annas", "annex", "annoy", "annul", "anode", "anole", "antic", "antis", "antsy", "anvil", "aorta", "apace", "apart", "aphid", "apnea", "apple", "apply", "apron", "apses", "apter", "aptly", "aquas", "arbor", "ardor", "areal", "areas", "areca", "arena", "argon", "argot", "argue", "argus", "arias", "arils", "arise", "armed", "armor", "aroma", "arose", "array", "arrow", "arses", "arson", "artsy", "asana", "ascot", "ashen", "ashes", "aside", "asked", "asker", "askew", "aspen", "aspic", "assay", "asses", "asset", "aster", "astir", "asura", "atlas", "atman", "atoll", "atoms", "atone", "atopy", "attic", "audio", "audit", "auger", "aught", "augur", "aunts", "aunty", "aural", "auras", "autos", "auxin", "avail", "avers", "avert", "avian", "avoid", "avows", "await", "awake", "award", "aware", "awash", "awful", "awoke", "axels", "axial", "axils", "axing", "axiom", "axion", "axles", "axons", "azide", "azole", "azure"];
+    let solution = textByLine[Math.floor(Math.random()*textByLine.length)];
+    
+
+
     const canvas = document.getElementById("myCanvas");
     const ctx = canvas.getContext("2d");
 
+    let keys = new Array(3);
 
+    let currLetter = 0;
+    let currLevel = 0;
+
+    let lastDraw = false;
 
     const lightGray = "#eeeeee";
     const green = "#19d70f";
     const yellow = "#d3d70f";
-    const darkGray = "#cccccc";
+    const darkGray = "#888888";
 
     const tileSize = canvas.width/7;
     const textSize = tileSize*2/3;
     const keyboardSize = canvas.width/10;
     const keyboardTextSize = keyboardSize*2/3;
 
+    const errorMessage = 'Not a word in the list'
+
+    const winningStatements = [
+        'Genius',
+        'Magnificent',
+        'Impressive',
+        'Splendid',
+        'Great',
+        'Phew'
+    ];
+
     class Tile {
-        constructor(value, row, col){
+        constructor(value, row, col, otherTiles){
             this.value = value;
             this.row = row;
             this.col = col;
             this.color = lightGray;
             this.userInput = " ";
             this.size = tileSize;
+            this.otherTiles = otherTiles;
         }
 
         
@@ -53,9 +75,48 @@
             ctx.beginPath();
             ctx.font = textSize + "px Arial";
             ctx.fillStyle = "#000000";
-            ctx.fillText(this.userInput, this.size*(this.row+1)+this.size/4, this.size*(this.col+1.5)+this.size/1.5);
+            ctx.textAlign = 'center';
+            ctx.fillText(this.userInput, this.size*(this.row+1)+this.size/2, this.size*(this.col+1.5)+this.size/1.5);
             ctx.closePath();
 
+    }
+
+    Tile.prototype.checkValue = function(){
+        if(this.userInput === this.value){
+            this.color = green;
+            //keyboard needs to be green
+            for(let i = 0; i < keys.length; i++){
+                for(let j = 0; j < keys[i].length; j++){
+                    if(this.userInput == keys[i][j].value){
+                        keys[i][j].color = green;
+                        return true;
+                    }
+                }
+            }
+        }
+        else if(this.otherTiles.indexOf(this.userInput) > -1){
+            this.color = yellow;
+            //if light gray this becomes yellow
+            for(let i = 0; i < keys.length; i++){
+                for(let j = 0; j < keys[i].length; j++){
+                    if(this.userInput == keys[i][j].value && keys[i][j].color === lightGray){
+                        keys[i][j].color = yellow;
+                    }
+                }
+            }
+        }
+        else {
+            this.color = darkGray;
+            //keyboard needs to be dark gray
+            for(let i = 0; i < keys.length; i++){
+                for(let j = 0; j < keys[i].length; j++){
+                    if(this.userInput == keys[i][j].value){
+                        keys[i][j].color = darkGray;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     class KeyBoardLetter {
@@ -83,15 +144,16 @@
             ctx.beginPath();
             ctx.font = textSize + "px Arial";
             ctx.fillStyle = "#000000";
-            ctx.fillText(this.value, this.x+this.size/4, this.y+this.size/1.5);
+            ctx.textAlign = 'center';
+            ctx.fillText(this.value, this.x+this.size/2, this.y+this.size/1.2);
             ctx.closePath();
 
     }
-    const firstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
-    const secondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
-    const thirdRow = ["Z", "X", "C", "V", "B", "N", "M"];
+    const firstRow = "QWERTYUIOP";
+    const secondRow = "ASDFGHJKL";
+    const thirdRow = "ZXCVBNM";
 
-    let keys = new Array(3);
+    //let keys = new Array(3);
 
     keys[0] = new Array(firstRow.length);
     for(let i = 0; i < firstRow.length; i++){
@@ -112,24 +174,84 @@
 
     //let exampleTile = new Tile("A", 1, 1);
     let tiles = new Array(6);
-    let solution = "APPLE";
+    //let solution = "APPLE";
     for(let i = 0; i < 6; i++){
         tiles[i] = new Array(solution.length);
         for(let j = 0; j < solution.length; j++){
-            tiles[i][j] = new Tile(solution[j], j, i);
+            tiles[i][j] = new Tile(solution[j], j, i, solution.slice(0, j) + solution.slice(j+1));
+            //tiles[i][j] = new Tile(solution[j], j, i);
         }
+    }
+
+    function checkValues(guess){
+        let correct = true;
+        for(let i = 0; i < guess.length; i++){
+            if(guess[i].checkValue() === false){
+                correct = false;
+            }
+        }
+        return correct;
     }
 
     window.addEventListener('click', (event) => {
     if (event.button == 0) {
-        console.log('Cursor at: ' + pointerX + ', ' + pointerY);
+        //alert('X: ' + pointerX + ', Y: ' + pointerY);
+        //console.log('Cursor at: ' + pointerX + ', ' + pointerY);
+        let done = false;
+        for(let i = 0; i < keys.length; i++){
+            for(let j = 0; j < keys[i].length; j++){
+                if(pointerX > keys[i][j].x && pointerX < keys[i][j].x+keys[i][j].size){
+                    if(pointerY > keys[i][j].y && pointerY < keys[i][j].y+keys[i][j].size){
+                        //alert(keys[i][j].value);
+                        if(keys[i][j].value === '<'){
+                            if(currLetter > 0){
+                                tiles[currLevel][currLetter-1].userInput = ' ';
+                                currLetter--;
+                            }
+                        }
+                        else if(keys[i][j].value === '>'){
+                            if(currLetter === 5){
+                                currLetter = 0;
+                                done = checkValues(tiles[currLevel]);
+                                if(done){
+                                    break;
+                                }
+                                currLevel++;
+                            }
+                            //check function
+                        }
+                        else if(currLetter < solution.length){
+                            tiles[currLevel][currLetter].userInput = keys[i][j].value;
+                            currLetter++;
+                        }
+                    }
+                }
+            }
+        }
+        if(done){
+            alert(winningStatements[currLevel]);
+            lastDraw = true;
+            //clearInterval(drawInterval);
+            /*document.location.reload();
+            clearInterval(interval);*/ // Needed for Chrome to end game
+
+        }
+        else if(currLevel > 5){
+            alert(solution);
+            lastDraw = true;
+            //clearInterval(drawInterval);
+            //end game
+            /*document.location.reload();
+            clearInterval(interval);*/ // Needed for Chrome to end game
+
+        }
         }
     })
     // this tracks the value of the x and y coordinates of the mouse
     var pointerX = -1;
     var pointerY = -1;
     document.onmousemove = function(event) {
-        pointerX = event.pageX;
+        pointerX = event.pageX - canvas.offsetLeft;
         pointerY = event.pageY;
     }
 
@@ -143,7 +265,8 @@
         ctx.beginPath();
         ctx.font = "30px Arial";
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillText("WORDLE", 175, 60);
+        ctx.textAlign = 'center';
+        ctx.fillText("WORDLE", canvas.width/2, canvas.height/10);
         ctx.closePath();
 
         for(let i = 0; i < tiles.length; i++){
@@ -157,9 +280,12 @@
                 keys[i][j].drawLetter();
             }
         }
+        if(lastDraw){
+            clearInterval(drawInterval);
+        }
     }
 
-    setInterval(draw, 10);
+    let drawInterval = setInterval(draw, 10);
 
 </script>
 
